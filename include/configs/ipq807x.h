@@ -371,4 +371,26 @@ extern loff_t board_env_size;
 #define CONFIG_NAME_MAX_ENTRIES	4
 #define CONFIG_NAME_MAX_LEN	32
 #endif
+
+/* ==================== SoftBank_Air5_IPQ807x 64MB SPI NOR + 任意FIT固件配置（满足全部5点） ==================== */
+/* 1. 从 0x00400000 开始读取 OpenWRT FIT 内核 */
+/* 2. bootm 自动使用 FIT 自身的 default 配置加载 kernel（rootfs 内核接管） */
+/* 3. 只硬编码起始地址，不限制分区大小（读满剩余 60MB） */
+/* 4. 完全不做任何固件检测（不判断 config@hk09 / config@1 等） */
+/* 5. 刷不死（坏固件自动进 TFTP 恢复） */
+
+#define CONFIG_BOOTCOMMAND \
+	"sf probe 0:0; " \
+	"sf read 0x44000000 0x00400000 0x03c00000; " \
+	"bootm 0x44000000 || run recovery"
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"bootargs=console=ttyMSM0,115200n8 rootfstype=ubifs rootwait\0" \
+	"kernel_offset=0x00400000\0" \
+	"loadaddr=0x44000000\0" \
+	"recovery=setenv bootdelay 10; echo '=== 刷不死恢复模式 ==='; " \
+		"echo '请用TFTP上传任意FIT镜像'; tftpboot 0x44000000 openwrt-ipq807x-fit.itb; " \
+		"bootm\0"
+
+#define CONFIG_BOOTDELAY		5     /* 开机5秒内按任意键进命令行（永不死） */
 #endif /* _IPQCDP_H */
