@@ -152,7 +152,26 @@ extern loff_t board_env_size;
 #define CONFIG_ENV_SIZE_MAX		(256 << 10) /* 256 KB */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE_MAX + (1024 << 10))
 
+#ifdef CONFIG_SOFTBANK_AIR5_BOOT
+/*
+ * SoftBank Air5: Environment stored in SPI-NOR at 0x00380000 (256KB before kernel)
+ * Flash layout (W25R512NWEIQ 64MB 1.8V):
+ *   0x00000000 - 0x000FFFFF : SBL/TZ/RPM/U-Boot (1MB)
+ *   0x00100000 - 0x0037FFFF : U-Boot redundant + scratch (2.5MB)
+ *   0x00380000 - 0x003FFFFF : U-Boot environment (512KB)
+ *   0x00400000 - end        : OpenWrt FIT image (kernel+dtb)
+ */
+#undef CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_IS_IN_SPI_FLASH	1
+#undef CONFIG_ENV_OFFSET
+#define CONFIG_ENV_OFFSET		0x00380000
+#undef CONFIG_ENV_SIZE
+#define CONFIG_ENV_SIZE			(256 * 1024)
+#undef CONFIG_ENV_RANGE
+#define CONFIG_ENV_RANGE		(512 * 1024)
+#else
 #define CONFIG_ENV_IS_IN_NAND		1
+#endif
 #define CONFIG_FLASH_PROTECT
 #define CONFIG_CMD_FLASHWRITE
 
@@ -245,8 +264,14 @@ extern loff_t board_env_size;
 #define CONFIG_SYS_MEMTEST_END		CONFIG_SYS_MEMTEST_START + 0x100
 
 /* NSS firmware loaded using bootm */
+#ifdef CONFIG_SOFTBANK_AIR5_BOOT
+/* SoftBank Air5: boot OpenWrt FIT directly from SPI-NOR 0x00400000 */
+#define CONFIG_BOOTCOMMAND  "bootopenwrt"
+#define CONFIG_BOOTARGS     "console=ttyMSM0,115200n8 rootwait"
+#else
 #define CONFIG_BOOTCOMMAND  "bootipq"
 #define CONFIG_BOOTARGS "console=ttyMSM0,115200n8"
+#endif
 #define QCA_ROOT_FS_PART_NAME "rootfs"
 
 #define CONFIG_BOOTDELAY	2
@@ -371,26 +396,4 @@ extern loff_t board_env_size;
 #define CONFIG_NAME_MAX_ENTRIES	4
 #define CONFIG_NAME_MAX_LEN	32
 #endif
-
-/* ==================== SoftBank_Air5_IPQ807x 64MB SPI NOR + 任意FIT固件配置（满足全部5点） ==================== */
-/* 1. 从 0x00400000 开始读取 OpenWRT FIT 内核 */
-/* 2. bootm 自动使用 FIT 自身的 default 配置加载 kernel（rootfs 内核接管） */
-/* 3. 只硬编码起始地址，不限制分区大小（读满剩余 60MB） */
-/* 4. 完全不做任何固件检测（不判断 config@hk09 / config@1 等） */
-/* 5. 刷不死（坏固件自动进 TFTP 恢复） */
-
-#define CONFIG_BOOTCOMMAND \
-	"sf probe 0:0; " \
-	"sf read 0x44000000 0x00400000 0x03c00000; " \
-	"bootm 0x44000000 || run recovery"
-
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootargs=console=ttyMSM0,115200n8 rootfstype=ubifs rootwait\0" \
-	"kernel_offset=0x00400000\0" \
-	"loadaddr=0x44000000\0" \
-	"recovery=setenv bootdelay 10; echo '=== 刷不死恢复模式 ==='; " \
-		"echo '请用TFTP上传任意FIT镜像'; tftpboot 0x44000000 openwrt-ipq807x-fit.itb; " \
-		"bootm\0"
-
-#define CONFIG_BOOTDELAY		5     /* 开机5秒内按任意键进命令行（永不死） */
 #endif /* _IPQCDP_H */
