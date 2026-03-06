@@ -154,21 +154,29 @@ extern loff_t board_env_size;
 
 #ifdef CONFIG_SOFTBANK_AIR5_BOOT
 /*
- * SoftBank Air5: Environment stored in SPI-NOR at 0x00380000 (256KB before kernel)
- * Flash layout (W25R512NWEIQ 64MB 1.8V):
- *   0x00000000 - 0x000FFFFF : SBL/TZ/RPM/U-Boot (1MB)
- *   0x00100000 - 0x0037FFFF : U-Boot redundant + scratch (2.5MB)
- *   0x00380000 - 0x003FFFFF : U-Boot environment (512KB)
+ * SoftBank Air5: Environment stored in APPSBLENV partition (from smeminfo)
+ * SPI-NOR partition layout (W25R512NWEIQ 64MB 1.8V):
+ *   0x00000000 + 0x00040000 : SBL1
+ *   0x00040000 + 0x00010000 : MIBIB
+ *   0x00050000 + 0x00160000 : SEE (TZ)
+ *   0x001B0000 + 0x00010000 : EVCFG
+ *   0x001C0000 + 0x00020000 : RPM
+ *   0x001E0000 + 0x00010000 : CDT
+ *   0x001F0000 + 0x00010000 : APPSBLENV  <-- U-Boot environment here
+ *   0x00200000 + 0x000A0000 : APPSBL (U-Boot binary)
+ *   0x002A0000 + 0x00040000 : ART
+ *   0x002E0000 + 0x00010000 : OEM
+ *   0x002F0000 + 0x00020000 : CRASH
  *   0x00400000 - end        : OpenWrt FIT image (kernel+dtb)
  */
 #undef CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_IS_IN_SPI_FLASH	1
 #undef CONFIG_ENV_OFFSET
-#define CONFIG_ENV_OFFSET		0x00380000
+#define CONFIG_ENV_OFFSET		0x001F0000
 #undef CONFIG_ENV_SIZE
-#define CONFIG_ENV_SIZE			(256 * 1024)
+#define CONFIG_ENV_SIZE			(64 * 1024)
 #undef CONFIG_ENV_RANGE
-#define CONFIG_ENV_RANGE		(512 * 1024)
+#define CONFIG_ENV_RANGE		(64 * 1024)
 #else
 #define CONFIG_ENV_IS_IN_NAND		1
 #endif
