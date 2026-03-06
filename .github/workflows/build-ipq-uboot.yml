@@ -257,7 +257,7 @@ jobs:
           $PYTHON --version
 
           # Define IPQ types directly (simpler approach)
-          IPQ_TYPES=("ipq807x_softbank_air5")
+          IPQ_TYPES=("ipq807x")
 
           # Build each IPQ type
           for ipq_type in "${IPQ_TYPES[@]}"; do
