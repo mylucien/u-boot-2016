@@ -147,9 +147,9 @@ extern loff_t board_env_size;
 
 #define CONFIG_IPQ807X_ENV		1
 #define CONFIG_ENV_OFFSET		board_env_offset
+#define CONFIG_ENV_SIZE			CONFIG_ENV_SIZE_MAX
 #define CONFIG_ENV_RANGE		board_env_range
 #define CONFIG_ENV_SIZE_MAX		(256 << 10) /* 256 KB */
-#define CONFIG_ENV_SIZE			CONFIG_ENV_SIZE_MAX
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE_MAX + (1024 << 10))
 
 #ifdef CONFIG_SOFTBANK_AIR5_BOOT
@@ -170,12 +170,9 @@ extern loff_t board_env_size;
  *   0x00400000 - end        : OpenWrt FIT image (kernel+dtb)
  */
 #undef CONFIG_ENV_IS_IN_NAND
-#undef CONFIG_ENV_SIZE_MAX
 #define CONFIG_ENV_IS_IN_SPI_FLASH	1
 #undef CONFIG_ENV_OFFSET
 #define CONFIG_ENV_OFFSET		0x001F0000
-#undef CONFIG_ENV_SIZE
-#define CONFIG_ENV_SIZE			(64 * 1024)
 #undef CONFIG_ENV_RANGE
 #define CONFIG_ENV_RANGE		(64 * 1024)
 #else
