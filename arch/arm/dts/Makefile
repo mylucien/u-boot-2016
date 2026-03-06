@@ -20,6 +20,11 @@ dtb-$(CONFIG_EXYNOS5) += exynos5250-arndale.dtb \
 	exynos5800-peach-pi.dtb \
 	exynos5422-odroidxu3.dtb
 
+dtb-$(CONFIG_IPQ807X_SOFTBANK_AIR5) += ipq807x-softbank-air5.dtb
+ifneq ($(CONFIG_IPQ807X_SOFTBANK_AIR5),y)
+dtb-$(CONFIG_ARCH_IPQ807x) += ipq807x-softbank-air5.dtb
+endif
+
 dtb-$(CONFIG_ARCH_IPQ807x) += ipq807x-hk01.dtb \
 	ipq807x-hk02.dtb \
 	ipq807x-hk06.dtb \
