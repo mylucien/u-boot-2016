@@ -231,7 +231,6 @@ static int do_firmware_upgrade(const ulong size) {
 	return execute_command(buf);
 	}
 #endif /* CONFIG_SOFTBANK_AIR5_BOOT */
-}
 
 static int do_uboot_upgrade(const ulong size) {
 	char buf[576];
