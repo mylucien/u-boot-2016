@@ -1397,8 +1397,13 @@ $(version_h): include/config/uboot.release FORCE
 $(timestamp_h): $(srctree)/Makefile FORCE
 	$(call filechk,timestamp.h)
 #ifdef CONFIG_HTTPD
-	sed -i "s/Version:[^<]*</Version: U-Boot $(UBOOTRELEASE) (`LC_ALL=C date +'%b %d %C%y - %T %z'`)</g" $(CURDIR)/httpd/vendors/pig/*.html
-	cd $(srctree)/httpd; ./vendors/makefsdatac; cd -
+	if [ -n "$(CONFIG_SOFTBANK_AIR5_BOOT)" ]; then \
+		sed -i "s/Version:[^<]*</Version: U-Boot $(UBOOTRELEASE) (`LC_ALL=C date +'%b %d %C%y - %T %z'`)</g" $(CURDIR)/httpd/vendors/air5/*.html; \
+		cd $(srctree)/httpd; ./vendors/makefsdatac air5; cd -; \
+	else \
+		sed -i "s/Version:[^<]*</Version: U-Boot $(UBOOTRELEASE) (`LC_ALL=C date +'%b %d %C%y - %T %z'`)</g" $(CURDIR)/httpd/vendors/pig/*.html; \
+		cd $(srctree)/httpd; ./vendors/makefsdatac; cd -; \
+	fi
 # endif
 
 # ---------------------------------------------------------------------------
