@@ -60,11 +60,8 @@ extern bootm_headers_t images;
  */
 static int is_reset_button_pressed(void)
 {
-#define TLMM_BASE		0x01000000
-#define GPIO_IN_OUT(x)		(TLMM_BASE + 0x4 + (x) * 0x1000)
-
-	u32 val = readl(GPIO_IN_OUT(RESET_BUTTON_GPIO));
-	/* Active low button: bit 0 = current value */
+	u32 val = *(volatile u32 *)GPIO_IN_OUT_ADDR(RESET_BUTTON_GPIO);
+	/* Active low: bit 0 = current pin value, 0 = pressed */
 	return ((val & 0x1) == 0) ? 1 : 0;
 }
 
