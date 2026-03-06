@@ -47,10 +47,8 @@
 /* GPIO for reset button (failsafe detection) - IPQ807x typical reset GPIO */
 #define RESET_BUTTON_GPIO		57
 
-/* Failsafe TFTP server IP */
-#define FAILSAFE_SERVERIP		"192.168.1.2"
+/* Failsafe web recovery IP */
 #define FAILSAFE_IPADDR			"192.168.1.1"
-#define FAILSAFE_FILENAME		"openwrt-ipq807x-softbank_air5-squashfs-nand-factory.bin"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -71,56 +69,36 @@ static int is_reset_button_pressed(void)
 }
 
 /*
- * Enter failsafe/recovery mode via TFTP
- * Serves as the "unbrickable" recovery mechanism
+ * Enter failsafe/recovery mode via built-in HTTP server
+ *
+ * Starts the uIP-based httpd on 192.168.1.1:80.
+ * The web UI (vendors/air5) allows uploading:
+ *   - OpenWrt FIT firmware  -> written to SPI-NOR 0x00400000
+ *   - U-Boot (.mbn/.elf)    -> written to APPSBL  0x00200000
+ *
+ * Flash writes are handled by net/httpd.c do_firmware_upgrade() /
+ * do_uboot_upgrade() which have Air5-specific branches guarded by
+ * CONFIG_SOFTBANK_AIR5_BOOT.
  */
 static void do_failsafe_recovery(void)
 {
-	char cmd[512];
-
 	printf("\n");
 	printf("================================================\n");
 	printf("  FAILSAFE RECOVERY MODE\n");
 	printf("  Reset button held at boot\n");
 	printf("================================================\n");
-	printf("  Device IP : %s\n", FAILSAFE_IPADDR);
-	printf("  Server IP : %s\n", FAILSAFE_SERVERIP);
-	printf("  Filename  : %s\n", FAILSAFE_FILENAME);
-	printf("\n");
-	printf("  Connect your PC to LAN port, set PC IP to\n");
-	printf("  192.168.1.x, start TFTP server with the\n");
-	printf("  firmware file, then wait...\n");
+	printf("  Device IP  : %s\n", FAILSAFE_IPADDR);
+	printf("  Open browser: http://%s/\n", FAILSAFE_IPADDR);
 	printf("================================================\n\n");
 
 	/* Configure network */
-	setenv("ipaddr",    FAILSAFE_IPADDR);
-	setenv("serverip",  FAILSAFE_SERVERIP);
-	setenv("netmask",   "255.255.255.0");
+	setenv("ipaddr",   FAILSAFE_IPADDR);
+	setenv("netmask",  "255.255.255.0");
+	setenv("serverip", "192.168.1.2");
 
-	/* Try TFTP download with retries */
-	printf("Waiting for TFTP server...\n");
-	snprintf(cmd, sizeof(cmd),
-		"setenv tftp_retry 0; "
-		"while true; do "
-		"  if tftpboot 0x%lx %s; then "
-		"    echo 'Download OK, writing to flash...'; "
-		"    sf probe && "
-		"    sf erase 0x%lx +0x%x && "
-		"    sf write 0x%lx 0x%lx 0x${filesize} && "
-		"    echo 'Flash write complete! Rebooting...' && "
-		"    reset; "
-		"  fi; "
-		"  echo 'Retrying TFTP in 3 seconds...'; "
-		"  sleep 3; "
-		"done",
-		(unsigned long)OPENWRT_LOAD_ADDR,
-		FAILSAFE_FILENAME,
-		OPENWRT_KERNEL_FLASH_OFFSET,
-		OPENWRT_KERNEL_MAX_SIZE,
-		(unsigned long)OPENWRT_LOAD_ADDR,
-		OPENWRT_KERNEL_FLASH_OFFSET);
-
-	run_command(cmd, 0);
+	/* Start built-in HTTP server - blocks until firmware uploaded */
+	printf("Starting HTTP recovery server on %s:80 ...\n", FAILSAFE_IPADDR);
+	run_command("httpd " FAILSAFE_IPADDR, 0);
 }
 
 /*
