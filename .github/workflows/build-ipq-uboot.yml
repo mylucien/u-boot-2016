@@ -36,8 +36,6 @@ jobs:
         ipq_type: ['ipq40xx', 'ipq5018', 'ipq5332', 'ipq6018', 'ipq806x', 'ipq807x', 'ipq9574']
       fail-fast: false
 
-    if: github.event_name != 'workflow_dispatch' || inputs.ipq_type == 'all' || inputs.ipq_type == matrix.ipq_type
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
