@@ -73,7 +73,9 @@ jobs:
       - name: Build ${{ matrix.ipq_type }} U-Boot
         if: |
           ${{ env.SHOULD_RUN_STEP }}
-        run: ./build.sh ${{ matrix.ipq_type }}
+        run: |
+          chmod +x build.sh
+          ./build.sh ${{ matrix.ipq_type }}
 
       - name: Upload compiled artifacts (bin directory)
         if: |
