@@ -33,14 +33,14 @@
 		d_value = <15625>;
 		serial_gpio {
 			gpio1 {
-				gpio = <44>;
+				gpio = <7>;
 				func = <1>;
 				pull = <GPIO_PULL_DOWN>;
 				oe = <GPIO_OE_ENABLE>;
 			};
 
 			gpio2 {
-				gpio = <45>;
+				gpio = <8>;
 				func = <1>;
 				pull = <GPIO_NO_PULL>;
 				oe = <GPIO_OE_ENABLE>;
